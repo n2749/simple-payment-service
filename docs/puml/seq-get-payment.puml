@@ -1,0 +1,28 @@
+@startuml
+title Sequence - Get Payment Status (GET /payments/{paymentId})
+
+actor Client
+participant "PaymentController" as Controller
+participant "PaymentService" as Service
+participant "PaymentRepository" as PaymentRepo
+participant "GlobalExceptionHandler" as ErrorHandler
+database "PostgreSQL" as DB
+
+Client -> Controller : GET /payments/{paymentId}
+Controller -> Service : getPayment(paymentId)
+Service -> PaymentRepo : findById(paymentId)
+PaymentRepo -> DB : SELECT payment by id
+DB --> PaymentRepo : payment row / empty
+
+alt Payment not found
+  PaymentRepo --> Service : empty
+  Service --> Controller : NotFoundException(payment)
+  Controller -> ErrorHandler : handle(NotFoundException)
+  ErrorHandler --> Client : HTTP 404 Not Found
+else Payment found
+  PaymentRepo --> Service : Payment
+  Service --> Controller : PaymentDetailsResponse
+  Controller --> Client : HTTP 200\n{paymentId, amount, currency, description, clientId, status}
+end
+
+@enduml

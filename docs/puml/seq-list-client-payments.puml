@@ -1,0 +1,33 @@
+@startuml
+title Sequence - List Client Payments (GET /clients/{clientId}/payments)
+
+actor Client
+participant "PaymentController" as Controller
+participant "PaymentService" as Service
+participant "ClientRepository" as ClientRepo
+participant "PaymentRepository" as PaymentRepo
+participant "GlobalExceptionHandler" as ErrorHandler
+database "PostgreSQL" as DB
+
+Client -> Controller : GET /clients/{clientId}/payments
+Controller -> Service : getClientPayments(clientId)
+Service -> ClientRepo : existsById(clientId)
+ClientRepo -> DB : SELECT client by id
+DB --> ClientRepo : exists / not exists
+
+alt Client not found
+  ClientRepo --> Service : false
+  Service --> Controller : NotFoundException(client)
+  Controller -> ErrorHandler : handle(NotFoundException)
+  ErrorHandler --> Client : HTTP 404 Not Found
+else Client found
+  ClientRepo --> Service : true
+  Service -> PaymentRepo : findAllByClientId(clientId)
+  PaymentRepo -> DB : SELECT payments by client_id
+  DB --> PaymentRepo : list of payment rows
+  PaymentRepo --> Service : List<Payment>
+  Service --> Controller : List<PaymentSummaryResponse>
+  Controller --> Client : HTTP 200\n[{paymentId, amount, currency, status}, ...]
+end
+
+@enduml

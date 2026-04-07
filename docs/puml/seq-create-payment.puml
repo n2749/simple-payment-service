@@ -1,0 +1,44 @@
+@startuml
+title Sequence - Create Payment (POST /payments)
+
+actor Client
+participant "PaymentController" as Controller
+participant "PaymentValidator" as Validator
+participant "PaymentService" as Service
+participant "ClientRepository" as ClientRepo
+participant "PaymentRepository" as PaymentRepo
+participant "GlobalExceptionHandler" as ErrorHandler
+database "PostgreSQL" as DB
+
+Client -> Controller : POST /payments\n{amount, currency, description, clientId}
+Controller -> Validator : validate(request)
+
+alt Invalid amount/currency/payload
+  Validator --> Controller : ValidationException
+  Controller -> ErrorHandler : handle(ValidationException)
+  ErrorHandler --> Client : HTTP 400 Bad Request
+else Valid request
+  Validator --> Controller : OK
+  Controller -> Service : createPayment(request)
+  Service -> ClientRepo : existsById(clientId)
+  ClientRepo -> DB : SELECT client by id
+  DB --> ClientRepo : exists / not exists
+
+  alt Client does not exist
+    ClientRepo --> Service : false
+    Service --> Controller : NotFoundException(client)
+    Controller -> ErrorHandler : handle(NotFoundException)
+    ErrorHandler --> Client : HTTP 404 Not Found
+  else Client exists
+    ClientRepo --> Service : true
+    Service -> Service : build Payment(status=PENDING)
+    Service -> PaymentRepo : save(payment)
+    PaymentRepo -> DB : INSERT payment
+    DB --> PaymentRepo : payment row saved
+    PaymentRepo --> Service : paymentId, status=PENDING
+    Service --> Controller : CreatePaymentResponse
+    Controller --> Client : HTTP 201\n{paymentId, status=PENDING}
+  end
+end
+
+@enduml

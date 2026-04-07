@@ -1,0 +1,44 @@
+@startuml
+title Simple Payment Service - Component Diagram
+
+skinparam componentStyle rectangle
+
+actor "Client Application" as ClientApp
+
+package "Spring Boot Application" {
+  [PaymentController\n(REST API)] as PaymentController
+  [PaymentService\n(Business Rules)] as PaymentService
+  [PaymentValidator\n(Input Validation)] as PaymentValidator
+  [GlobalExceptionHandler\n(Error Mapping)] as ErrorHandler
+
+  interface "PaymentRepository" as PaymentRepository
+  interface "ClientRepository" as ClientRepository
+}
+
+database "PostgreSQL" as Postgres
+
+ClientApp --> PaymentController : HTTP/JSON
+PaymentController --> PaymentValidator : validate request
+PaymentController --> PaymentService : invoke use case
+PaymentService --> PaymentRepository : read/write payments
+PaymentService --> ClientRepository : verify client exists
+PaymentRepository --> Postgres : SQL via JPA/Hibernate
+ClientRepository --> Postgres : SQL via JPA/Hibernate
+
+PaymentController --> ErrorHandler : domain/validation exceptions
+ErrorHandler --> ClientApp : 400 / 404 response
+PaymentController --> ClientApp : 200 / 201 response
+
+note right of PaymentService
+State transitions:
+- PENDING -> CONFIRMED
+- PENDING -> CANCELED
+Invalid transitions return HTTP 400.
+end note
+
+note bottom of PaymentValidator
+amount > 0
+currency in {KZT, USD, EUR, RUB, CNY}
+end note
+
+@enduml

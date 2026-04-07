@@ -14,6 +14,13 @@ Services:
 - `payment-service`: `http://localhost:8080`
 - `postgres`: `localhost:5432` (`payment_db`)
 
+## API docs
+
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- OpenAPI JSON (live): `http://localhost:8080/v3/api-docs`
+- OpenAPI JSON (saved): `docs/openapi/openapi.json`
+- Postman collection: `docs/postman/payment-service.postman_collection.json`
+
 Health check:
 
 ```bash
@@ -30,4 +37,27 @@ Stop and remove DB volume:
 
 ```bash
 docker compose down -v
+```
+
+## Tests
+
+```bash
+docker compose up -d postgres
+docker run --rm \
+  -v "$PWD":/workspace \
+  -w /workspace \
+  -v "$HOME/.m2":/root/.m2 \
+  --add-host=host.docker.internal:host-gateway \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/payment_db \
+  -e SPRING_DATASOURCE_USERNAME=payment_user \
+  -e SPRING_DATASOURCE_PASSWORD=payment_pass \
+  maven:3.9.9-eclipse-temurin-21 \
+  mvn test
+```
+
+or if you have maven installed:
+
+```bash
+docker compose up -d postgres
+mvn test
 ```

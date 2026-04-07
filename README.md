@@ -14,13 +14,6 @@ Services:
 - `payment-service`: `http://localhost:8080`
 - `postgres`: `localhost:5432` (`payment_db`)
 
-## API docs
-
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
-- OpenAPI JSON (live): `http://localhost:8080/v3/api-docs`
-- OpenAPI JSON (saved): `docs/openapi/openapi.json`
-- Postman collection: `docs/postman/payment-service.postman_collection.json`
-
 Health check:
 
 ```bash
@@ -38,6 +31,13 @@ Stop and remove DB volume:
 ```bash
 docker compose down -v
 ```
+
+## API docs
+
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- OpenAPI JSON (live): `http://localhost:8080/v3/api-docs`
+- OpenAPI JSON (saved): `docs/openapi/openapi.json`
+- Postman collection: `docs/postman/payment-service.postman_collection.json`
 
 ## Tests
 

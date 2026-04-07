@@ -1,6 +1,7 @@
 package kz.nurbolat.paymentservice.api;
 
 import kz.nurbolat.paymentservice.api.dto.ErrorResponse;
+import kz.nurbolat.paymentservice.service.ConflictException;
 import kz.nurbolat.paymentservice.service.InvalidOperationException;
 import kz.nurbolat.paymentservice.service.NotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,9 +27,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidOperationException.class)
     public org.springframework.http.ResponseEntity<ErrorResponse> handleInvalidOperation(InvalidOperationException ex,
-                                                                                          HttpServletRequest request) {
+                                                                                           HttpServletRequest request) {
         return org.springframework.http.ResponseEntity.badRequest()
                 .body(new ErrorResponse("INVALID_OPERATION", ex.getMessage(), request.getRequestURI(), Instant.now()));
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public org.springframework.http.ResponseEntity<ErrorResponse> handleConflict(ConflictException ex,
+                                                                                 HttpServletRequest request) {
+        return org.springframework.http.ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse("CONFLICT", ex.getMessage(), request.getRequestURI(), Instant.now()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

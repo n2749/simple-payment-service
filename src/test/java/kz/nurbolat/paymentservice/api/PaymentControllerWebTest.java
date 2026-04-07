@@ -96,6 +96,20 @@ class PaymentControllerWebTest {
     }
 
     @Test
+    void createPaymentClientNotFound() throws Exception {
+        when(paymentService.createPayment(any(CreatePaymentRequest.class)))
+                .thenThrow(new NotFoundException("Client not found"));
+
+        CreatePaymentRequest request = new CreatePaymentRequest(BigDecimal.valueOf(100), CurrencyCode.KZT, "Order", "missing");
+
+        mockMvc.perform(post("/payments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+    }
+
+    @Test
     void getPaymentSuccess() throws Exception {
         UUID paymentId = UUID.randomUUID();
         when(paymentService.getPayment(paymentId)).thenReturn(new PaymentDetailsResponse(
@@ -137,7 +151,18 @@ class PaymentControllerWebTest {
         when(paymentService.confirmPayment(paymentId)).thenThrow(new InvalidOperationException("invalid"));
 
         mockMvc.perform(post("/payments/{paymentId}/confirm", paymentId))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_OPERATION"));
+    }
+
+    @Test
+    void confirmPaymentNotFound() throws Exception {
+        UUID paymentId = UUID.randomUUID();
+        when(paymentService.confirmPayment(paymentId)).thenThrow(new NotFoundException("Payment not found"));
+
+        mockMvc.perform(post("/payments/{paymentId}/confirm", paymentId))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"));
     }
 
     @Test
@@ -156,7 +181,18 @@ class PaymentControllerWebTest {
         when(paymentService.cancelPayment(paymentId)).thenThrow(new NotFoundException("Payment not found"));
 
         mockMvc.perform(post("/payments/{paymentId}/cancel", paymentId))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+    }
+
+    @Test
+    void cancelPaymentInvalidState() throws Exception {
+        UUID paymentId = UUID.randomUUID();
+        when(paymentService.cancelPayment(paymentId)).thenThrow(new InvalidOperationException("invalid"));
+
+        mockMvc.perform(post("/payments/{paymentId}/cancel", paymentId))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_OPERATION"));
     }
 
     @Test
@@ -175,6 +211,16 @@ class PaymentControllerWebTest {
         when(paymentService.getClientPayments(eq("missing"))).thenThrow(new NotFoundException("Client not found"));
 
         mockMvc.perform(get("/clients/{clientId}/payments", "missing"))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+    }
+
+    @Test
+    void listClientPaymentsEmpty() throws Exception {
+        when(paymentService.getClientPayments(eq("12345"))).thenReturn(List.of());
+
+        mockMvc.perform(get("/clients/{clientId}/payments", "12345"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
     }
 }

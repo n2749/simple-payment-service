@@ -1,63 +1,45 @@
-# simple-payment-service
+# Payment Service API
 
-Spring Boot + PostgreSQL setup for a simple payment service.
+## What it does
+A production-ready REST API for processing and tracking payments, built with Spring Boot and PostgreSQL. Demonstrates modern backend practices: JWT auth, OpenAPI documentation, Docker containerization, and automated testing.
 
-## Run with Docker Compose
+## Why you'd use this
+- Need a payment API template for interviews or client work
+- Want to see Spring Boot + security + database + testing in one place
+- Learning OpenAPI and Docker best practices
 
-Requirements: Docker + Docker Compose.
+## Stack
+- Java 21, Spring Boot 3.x
+- PostgreSQL
+- JWT authentication (Spring Security)
+- OpenAPI 3.0 (Springdoc)
+- Docker & Docker Compose
+- JUnit 5, Testcontainers
 
+## Key features
+1. **Create & track payments** — RESTful endpoints with validation
+2. **JWT authentication** — role-based access control
+3. **OpenAPI documentation** — interactive Swagger UI built-in
+4. **Full test coverage** — unit + integration tests with Testcontainers
+5. **One-command deploy** — `docker compose up` and you're running
+
+## Quick start
 ```bash
 docker compose up --build
+# API: http://localhost:8080
+# Docs: http://localhost:8080/swagger-ui.html
 ```
-
-Services:
-- `payment-service`: `http://localhost:8080`
-- `postgres`: `localhost:5432` (`payment_db`)
-
-Health check:
-
-```bash
-curl http://localhost:8080/actuator/health
-```
-
-Stop:
-
-```bash
-docker compose down
-```
-
-Stop and remove DB volume:
-
-```bash
-docker compose down -v
-```
-
-## API docs
-
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
-- OpenAPI JSON (live): `http://localhost:8080/v3/api-docs`
-- OpenAPI JSON (saved): `docs/openapi/openapi.json`
-- Postman collection: `docs/postman/payment-service.postman_collection.json`
 
 ## Tests
-
 ```bash
-docker compose up -d postgres
-docker run --rm \
-  -v "$PWD":/workspace \
-  -w /workspace \
-  -v "$HOME/.m2":/root/.m2 \
-  --add-host=host.docker.internal:host-gateway \
-  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/payment_db \
-  -e SPRING_DATASOURCE_USERNAME=payment_user \
-  -e SPRING_DATASOURCE_PASSWORD=payment_pass \
-  maven:3.9.9-eclipse-temurin-21 \
-  mvn test
-```
-
-or if you have maven installed:
-
-```bash
-docker compose up -d postgres
 mvn test
 ```
+
+## What I'd change if building for production
+- Async payment processing (message queue)
+- Rate limiting on endpoints
+- Audit logging for compliance
+- Idempotency keys for retries
+
+## License
+MIT

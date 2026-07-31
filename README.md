@@ -1,5 +1,7 @@
 # Payment Service API
 
+[![Tests](https://github.com/n2749/simple-payment-service/actions/workflows/ci.yml/badge.svg)](https://github.com/n2749/simple-payment-service/actions)
+
 ## What it does
 A production-ready REST API for processing and tracking payments, built with Spring Boot and PostgreSQL. Demonstrates modern backend practices: JWT auth, OpenAPI documentation, Docker containerization, and automated testing.
 
